@@ -11,8 +11,8 @@
 .def LEVELTIME = r5
 .def LOKASICURSOR = r6
 .def temp = r16
-.def LEVELTIMENOW = r20
 .def LEVELCOUNTER = r19
+.def LEVELTIMENOW = r20
 
 .org $00
 	rjmp init
@@ -32,7 +32,22 @@ init:
 	; SETUP LED HERE
 
 	; SETUP TIMER HERE
+
 		; TIMER 1 UNTUK WAKTU PER LEVEL
+	ldi temp, 1<<CS11			; prescalar 256
+	out TCCR1B, temp
+	ldi temp, 1<<OCF1A			; inturrupt if compare true in T/C1B
+	out TIFR, temp	
+	ldi temp, 1<<OCIE1A			; Enable timer/counter1B compare int
+	out TIMSK, temp
+	ldi temp, $F4				
+	out OCR1AH, temp
+	ldi temp, $24				; Compared value, to be around 1 second
+	out OCR1AL, temp
+	ser temp
+	out DDRB, temp				; Set port B as output
+	sei
+
 		; TIMER 0 UNTUK RANDOM GENERATOR
 
 	; SETUP KEYPAD HERE
@@ -44,7 +59,19 @@ init:
 
 addleveltimenow:
 
-	; ADD 1 to leveltimenow
+	push temp
+	in temp,SREG
+	push temp
+
+	clr temp
+	out TCNT1H, temp
+	out TCNT1L, temp
+	; add 1 to timer
+
+	pop temp
+	out SREG,temp
+	pop temp
+
 	reti
 
 getname:
