@@ -26,7 +26,7 @@ init:
 	out TIMSK, temp
 	ldi temp, $F4				
 	out OCR1AH, temp
-	ldi temp, $24				; Compared value, source https://www.avrfreaks.net/forum/1-sec-timer-using-internal-8mhz-osc-atmega-8
+	ldi temp, $24				; Compared value
 	out OCR1AL, temp
 	ser temp
 	out DDRB, temp				; Set port B as output

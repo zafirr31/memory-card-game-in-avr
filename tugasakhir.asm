@@ -36,7 +36,7 @@ init:
 		; TIMER 1 UNTUK WAKTU PER LEVEL
 	ldi temp, 1<<CS11			; prescalar 256
 	out TCCR1B, temp
-	ldi temp, 1<<OCF1A			; inturrupt if compare true in T/C1B
+	ldi temp, 1<<OCF1A			; interrupt if compare true in T/C1B
 	out TIFR, temp	
 	ldi temp, 1<<OCIE1A			; Enable timer/counter1B compare int
 	out TIMSK, temp
@@ -49,6 +49,8 @@ init:
 	sei
 
 		; TIMER 0 UNTUK RANDOM GENERATOR
+	ldi temp, 1<<CS00			; No prescalar
+	out TCCR0,temp
 
 	; SETUP KEYPAD HERE
 
@@ -57,15 +59,25 @@ init:
 
 	; RESET
 
+resettimer0:
+	clr temp
+	out TCNT0, temp
+	ret
+
+resettimer1:
+	clr temp
+	out TCNT1H, temp
+	out TCNT1L, temp
+	ret
+
 addleveltimenow:
 
 	push temp
 	in temp,SREG
 	push temp
 
-	clr temp
-	out TCNT1H, temp
-	out TCNT1L, temp
+	rcall resettimer1
+	
 	; add 1 to timer
 
 	pop temp
