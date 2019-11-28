@@ -6,8 +6,7 @@
 ; Aljihad Ijlal Nadhif Suyudi
 
 .include "m8515def.inc"
-.def SEED1 = r3
-.def SEED2 = r4
+.def SEED = r3
 .def LEVELTIME = r5
 .def LOKASICURSOR = r6
 .def temp = r16
@@ -32,7 +31,6 @@ init:
 	; SETUP LED HERE
 
 	; SETUP TIMER HERE
-
 		; TIMER 1 UNTUK WAKTU PER LEVEL
 	ldi temp, 1<<CS11			; prescalar 256
 	out TCCR1B, temp
@@ -49,7 +47,7 @@ init:
 	sei
 
 		; TIMER 0 UNTUK RANDOM GENERATOR
-	ldi temp, 1<<CS00			; No prescalar
+	ldi temp, 1<<CS00			; No prescalar, turn it on
 	out TCCR0,temp
 
 	; SETUP KEYPAD HERE
@@ -79,6 +77,7 @@ addleveltimenow:
 	rcall resettimer1
 	
 	; add 1 to timer
+	inc LEVELTIMENOW
 
 	pop temp
 	out SREG,temp
@@ -87,21 +86,43 @@ addleveltimenow:
 	reti
 
 getname:
-	
-	; START RUNNING TIMER, DONT CARE IF OVERFLOW
-	; USE TIMER 0
 
 	; USE KEYPAD TO INPUT NAME
 
-	; STOP TIMER 0, GET I'TS VALUE
+	; GET VALUE IN TCNT0
 	; USE VALUE AS SEED FOR RANDOM
+	get_seed:
+		in temp, TCNT0		; get value in timer for seed
+		tst temp
+		breq get_seed		; prevent seed=0
+	mov SEED, temp
+
+	ret
 
 getrandomnumber:
 
 	; USING SEED, GENERATE NEXT RANDOM NUMBER
 	; USE XORSHIFT ALGORITHM, https://en.wikipedia.org/wiki/Xorshift
 
-	; PUT VALUE IN r16
+	mov temp, SEED		; shift left by 2
+	lsl temp
+	lsl temp
+	eor SEED, temp
+	mov temp, SEED
+	lsr temp			; shift right by 5
+	lsr temp
+	lsr temp
+	lsr temp
+	lsr temp
+	eor SEED, temp
+	mov temp, SEED
+	lsl temp			; shift left by 3
+	lsl temp
+	lsl temp
+	eor SEED, temp
+
+	mov temp, SEED		; PUT VALUE IN temp
+
 
 setuplayout:
 	
@@ -135,6 +156,7 @@ closecard:
 main:
 	
 	; INPUT NAME FUNC, getname
+	rcall getname
 
 	; SAVE NAME IN FLASH MEMORY
 	; NAME HAS MAX OF 8 BYTES
