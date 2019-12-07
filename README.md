@@ -9,5 +9,5 @@ Spesifikasi:
 Kolaborator (Random Algorithm):
 - Sean Zeliq Urian
 - Adrian Wijaya
-- Falih Mufazan
+- Falih Mufazan<br>
 Kelas POK-B
