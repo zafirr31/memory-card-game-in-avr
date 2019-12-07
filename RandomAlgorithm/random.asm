@@ -1,5 +1,7 @@
 
 
+; Ide dari kelompok Sean, POK B
+
 .include "m8515def.inc"
 
 .def SEED=r3
@@ -60,26 +62,14 @@ GENERATE_NEXT_RANDOM:
 	in temp,SREG
 	push temp
 
-	mov temp, SEED
-	lsl temp
-	lsl temp
-	eor SEED, temp
-	mov temp, SEED
-	lsr temp
-	lsr temp
-	lsr temp
-	lsr temp
-	lsr temp
-	eor SEED, temp
-	mov temp, SEED
-	lsl temp
-	lsl temp
-	lsl temp
-	eor SEED, temp
+	ldi temp, 71
+	mul SEED, temp
+	mov SEED, r0
+	ldi temp, 67
+	adc SEED, temp
 
 	mov lampu, SEED
 	out PORTB,lampu	
-
 
 	pop temp
 	out SREG,temp

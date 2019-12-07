@@ -2,6 +2,12 @@
 
 Repo ini digunakan untuk mendokumentasi progress proyek akhir matkul Pengantar Organisasi Komputer
 
-Specifikasi:
+Spesifikasi:
 - Atmega8515
 - 4.0 Mhz Clock
+
+Kolaborator (Random Algorithm):
+- Sean Zeliq Urian
+- Adrian Wijaya
+- Falih Mufazan
+Kelas POK-B
