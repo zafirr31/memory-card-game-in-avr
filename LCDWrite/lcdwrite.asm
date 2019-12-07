@@ -77,7 +77,7 @@ MAIN:
 		cbi PORTA,0 ; CLR EN
 		rcall DELAY
 		cbi PORTA,1 ; CLR RS
-		ldi temp,$0E ; MOV DATA,0x0E --> disp ON, cursor ON, blink OFF
+		ldi temp,$0D ; MOV DATA,0x0D --> disp ON, cursor OFF, blink ON
 		out PORTB,temp
 		sbi PORTA,0 ; SETB EN
 		cbi PORTA,0 ; CLR EN
