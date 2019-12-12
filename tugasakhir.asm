@@ -22,11 +22,15 @@
 .def LEVELTIME = r5
 .def lokasicursor = r6
 .def temp = r16
-.def temp2 = r17
+.def counter = r17
+.def pointer = r18;
 .def LEVELCOUNTER = r19
 .def LEVELTIMENOW = r20
 
 .equ layout_address = 0x60
+.equ nama = 0x80
+.equ nama_highscore = 0x90
+.equ highscore = 0x89
 
 .org $00
 	rjmp INIT
@@ -137,7 +141,7 @@ LONG_DELAY:
 	    nop
 	ret
 
-PUT_STRING:
+PUT_STRING_PROG_MEM:
 	mov ZL,arg1 ; Load low part of byte address into ZL
 	mov ZH,arg2 ; Load high part of byte address into ZH
 	
@@ -153,6 +157,23 @@ PUT_STRING:
 		rjmp LOADBYTE
 
 	END_LCD:
+		ret
+
+PUT_STRING_DATA_MEM:
+	mov XL,arg1 ; Load low part of byte address into ZL
+	mov XH,arg2 ; Load high part of byte address into ZH
+	
+	LOADBYTE_DATA_MEM:
+		ld r0, X+
+
+		tst r0 ; Check if we've reached the end of the message
+		breq END_LCD_DATA_MEM ; If so, quit
+
+		mov arg1, r0
+		rcall WRITE_TEXT
+		rjmp LOADBYTE_DATA_MEM
+
+	END_LCD_DATA_MEM:
 		ret
 
 WRITE_TEXT:
@@ -202,6 +223,26 @@ ADD_LEVEL_TIME_NOW:
 
 	reti
 
+PRINT_CHAR_AT_CHAR_MAP:
+	ldi temp, low(2*character_map)		; GET FIRST CHARACTER IN CHAR MAP
+	adc temp, pointer
+	mov arg1, temp
+	ldi temp, high(2*character_map)
+	brcc SKIP		; IF OVERFLOW, ADD ONE TO HIGH
+	inc temp
+	SKIP:
+
+	mov arg2, temp	; PRINT CURRENT CHAR AT KEYMAP
+	mov ZL, arg1
+	mov ZH, arg2
+	lpm
+	mov arg1, r0	; PRINT CURRENT CHAR AT KEYMAP
+	rcall WRITE_TEXT
+	rcall CHANGE_CURSOR_FINALLY
+	
+	ret
+
+
 GET_NAME:
 
 	ldi temp, 0x80
@@ -213,23 +254,39 @@ GET_NAME:
 	mov arg2, temp
 	ldi temp, low(2*message_input_nama)
 	mov arg1, temp
-	rcall PUT_STRING
+	rcall PUT_STRING_PROG_MEM
 
 	ldi temp, 0xC0
 	mov lokasicursor, temp
 	rcall CHANGE_CURSOR_FINALLY
 
+	ldi counter, 0
 	; USE KEYPAD TO INPUT NAME
-	ldi temp, 1
+	GET_NAME_FINALLY:
+	ldi pointer, 0
+
+	ldi temp, 1		; WAIT FOR UP, DOWN, OR ENTER
 	mov arg1, temp
 	rcall WAIT_KEY
 
+	inc counter
+	cpi counter, 8
+	brne GET_NAME_FINALLY
+
+	ldi pointer, 0
+	ldi temp, 0x80		
+	adc temp, counter
+	mov arg1, temp
+	ldi temp, 0x0
+	mov arg2, temp		; ADD NULL BYTE
+
+	mov XL, arg1
+	mov XH, arg2
+	ST X, pointer
+
 	; GET VALUE IN TCNT0
 	; USE VALUE AS SEED FOR RANDOM
-	get_seed:
-		in temp, TCNT0		; get value in timer for seed
-		tst temp
-		breq get_seed		; prevent seed=0
+	in temp, TCNT0		; get value in timer for seed
 	mov SEED, temp
 
 	ret
@@ -249,7 +306,7 @@ GET_RANDOM_NUMBER:
 
 	ret
 
-
+; not done
 SETUP_LAYOUT:
 
 	ldi temp, low(layout_address)
@@ -276,7 +333,7 @@ SETUP_LAYOUT:
 	mov arg2, temp
 	ldi temp, low(2*layout_coverall)
 	mov arg1, temp
-	rcall PUT_STRING
+	rcall PUT_STRING_PROG_MEM
 
 	ldi temp, 0xC0
 	mov lokasicursor, temp
@@ -286,7 +343,7 @@ SETUP_LAYOUT:
 	mov arg2, temp
 	ldi temp, low(2*layout_coverall)
 	mov arg1, temp
-	rcall PUT_STRING
+	rcall PUT_STRING_PROG_MEM
 
 	ldi temp, 0x80
 	mov lokasicursor, temp
@@ -294,23 +351,68 @@ SETUP_LAYOUT:
 
 	ret
 
-FINISH_WRITING_NAME:
+DECREASE_LETTER:
+	tst pointer
+	brne NOTZERO
+	ldi pointer, 0x20
+	NOTZERO:
+	dec pointer
+	andi pointer, 0x1F
+
+	rcall PRINT_CHAR_AT_CHAR_MAP
+
+	rjmp WAIT_KEY
 
 INCREASE_LETTER:
+	inc pointer
+	andi pointer, 0x1F
 
-DECREASE_LETTER:
+	rcall PRINT_CHAR_AT_CHAR_MAP
+
+	rjmp WAIT_KEY
+
+
+NEXT_CHAR:
+	ldi temp, low(2*character_map)		; GET FIRST CHARACTER IN CHAR MAP
+	adc temp, pointer
+	mov arg1, temp
+	ldi temp, high(2*character_map)
+	brcc SKIP2		; IF OVERFLOW, ADD ONE TO HIGH
+	inc temp
+	SKIP2:
+	mov arg2, temp	
+
+	mov ZL, arg1
+	mov ZH, arg2
+	lpm
+	mov pointer, r0
+
+
+	ldi temp, 0x80		
+	adc temp, counter
+	mov arg1, temp
+	ldi temp, 0x0
+	mov arg2, temp		; ADDRESS OF NAMA
+
+	mov XL, arg1
+	mov XH, arg2
+	ST X, pointer
+
+	mov temp, lokasicursor
+	inc temp
+	andi temp, 0xCF			; Add 1, andi 0xCF to get important bits
+	mov lokasicursor, temp
+	rcall CHANGE_CURSOR_FINALLY
+
+	ret
 
 CHANGE_CHARACTER:
-	cpi temp, 0x3E				; left
-	breq MOVE_CURSOR_LEFT
 	cpi temp, 0x5E				; down
 	breq DECREASE_LETTER
-	cpi temp, 0x6E				; right
-	breq MOVE_CURSOR_RIGHT
 	cpi temp, 0x5D				; up
 	breq INCREASE_LETTER
 	cpi temp, 0x6D				; enter
-	breq FINISH_WRITING_NAME
+	breq NEXT_CHAR
 
 	rjmp WAIT_KEY
 
@@ -430,6 +532,7 @@ MAIN:
 	
 	; INPUT NAME FUNC, GET_NAME
 	rcall GET_NAME
+	rcall CLEAR_LCD
 
 	; SAVE NAME IN FLASH MEMORY
 	; NAME HAS MAX OF 8 BYTES
@@ -440,15 +543,15 @@ MAIN:
 	mov arg2, temp
 	ldi temp, low(2*message_start)
 	mov arg1, temp
-	rcall PUT_STRING
+	rcall PUT_STRING_PROG_MEM
 
 	; DELAY, GET READY TO START GAME
 	; PREPARE LAYOUT
-	rcall SETUP_LAYOUT
+	;;;rcall SETUP_LAYOUT
 	; PREPARE TIMER
 
-	clr arg1
-	rjmp WAIT_KEY
+	;;;clr arg1
+	;;;rjmp WAIT_KEY
 
 	; LAYOUT DISIMPAN DI SRAM
 	; COUNTER UNTUK KETAHUI JIKA PASANGAN TELAH DITEMUKAN
@@ -464,11 +567,14 @@ MAIN:
 	; ADA BUTTON UNTUK MAIN ULANG
 	; DITEKAN ? DELAY, RJMP INIT
 
-	ldi temp, high(2*message_start)
+	rcall CLEAR_LCD
+
+	clr arg3
+	ldi temp, 0x0
 	mov arg2, temp
-	ldi temp, low(2*message_start)
+	ldi temp, 0x80
 	mov arg1, temp
-	rcall PUT_STRING
+	rcall PUT_STRING_DATA_MEM
 
 	forever:
 		rjmp forever
@@ -488,8 +594,5 @@ layout_coverall:
 message_input_nama:
 .db "INPUT NAMA:", 0
 
-nama:
-.db 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-
-highscore:
-.db 0, 0
+character_map:
+.db " ABCDEFGHIJKLMNOPQRSTUVWXYZ_?!+-", 0, 0
