@@ -242,7 +242,6 @@ PRINT_CHAR_AT_CHAR_MAP:
 	
 	ret
 
-
 GET_NAME:
 
 	ldi temp, 0x80
@@ -274,15 +273,15 @@ GET_NAME:
 	brne GET_NAME_FINALLY
 
 	ldi pointer, 0
-	ldi temp, 0x80		
+	ldi temp, low(nama)	
 	adc temp, counter
 	mov arg1, temp
-	ldi temp, 0x0
+	ldi temp, high(nama)
 	mov arg2, temp		; ADD NULL BYTE
 
 	mov XL, arg1
 	mov XH, arg2
-	ST X, pointer
+	st X, pointer
 
 	; GET VALUE IN TCNT0
 	; USE VALUE AS SEED FOR RANDOM
@@ -308,21 +307,76 @@ GET_RANDOM_NUMBER:
 
 ; not done
 SETUP_LAYOUT:
-
-	ldi temp, low(layout_address)
-	mov XL, temp ; Load low part of byte address into XL
-	ldi temp, high(layout_address)
-	mov XH, temp ; Load high part of byte address into XH
 	
 	rcall CLEAR_LCD
-	; USING RANDOM GENERATOR, SETUP LAYOUT
-	; GET RANDOM VALUE, AND IMMEDIATE 31
-	rcall GET_RANDOM_NUMBER
-	andi temp, 0x1F
-	; nanti
-	
-	; CEK THAT LOCATION, IF ALREADY HAS NUMBER, ADD 1, AND IMMEDIATE 31
-	; REPEAT 32 TIMES
+
+	; set all to zero
+	ldi counter, 0
+	ldi temp, low(nama)	
+	mov arg1, temp
+	ldi temp, high(nama)
+	mov arg2, temp
+	mov XL, arg1
+	mov XH, arg2
+	clr temp
+
+	SET_ZERO:
+		st X+, temp
+		inc counter
+		cpi counter, 32
+		brne SET_ZERO
+
+
+	ldi counter, 0
+											; USING RANDOM GENERATOR, SETUP LAYOUT
+											; GET RANDOM VALUE, AND IMMEDIATE 31
+	SETUP_LAYOUT_FINALLY:
+		mov pointer, counter
+		lsr pointer
+		inc pointer
+
+		rcall GET_RANDOM_NUMBER
+		andi temp, 0x1F
+		mov r0, temp
+
+		; CEK THAT LOCATION, IF ALREADY HAS NUMBER, ADD 1, AND IMMEDIATE 31
+		STILL_HAS:
+			mov temp, r0
+			inc temp
+			andi temp, 0x1F
+			mov r0, temp
+
+			ldi temp, low(nama)	
+			adc temp, r0
+			mov arg1, temp
+			ldi temp, high(nama)
+			mov arg2, temp
+
+			mov XL, arg1
+			mov XH, arg2
+			ld temp, X
+			cpi temp, 0x0
+			brne STILL_HAS
+
+		ldi temp, low(2*character_map)		; GET CHARACTER IN CHAR MAP
+		adc temp, pointer
+		mov arg1, temp
+		ldi temp, high(2*character_map)
+		brcc SKIP3		; IF OVERFLOW, ADD ONE TO HIGH
+		inc temp
+		SKIP3:
+		mov arg2, temp	
+		mov ZL, arg1
+		mov ZH, arg2
+		mov temp, r0
+		lpm
+
+		st X, r0	
+		
+		; REPEAT 32 TIMES
+		inc counter
+		cpi counter, 32
+		brne SETUP_LAYOUT_FINALLY
 
 	ldi temp, 0x80
 	mov lokasicursor, temp
@@ -371,7 +425,6 @@ INCREASE_LETTER:
 
 	rjmp WAIT_KEY
 
-
 NEXT_CHAR:
 	ldi temp, low(2*character_map)		; GET FIRST CHARACTER IN CHAR MAP
 	adc temp, pointer
@@ -388,10 +441,10 @@ NEXT_CHAR:
 	mov pointer, r0
 
 
-	ldi temp, 0x80		
+	ldi temp, low(nama)		
 	adc temp, counter
 	mov arg1, temp
-	ldi temp, 0x0
+	ldi temp, high(nama)
 	mov arg2, temp		; ADDRESS OF NAMA
 
 	mov XL, arg1
@@ -547,7 +600,7 @@ MAIN:
 
 	; DELAY, GET READY TO START GAME
 	; PREPARE LAYOUT
-	;;;rcall SETUP_LAYOUT
+	rcall SETUP_LAYOUT
 	; PREPARE TIMER
 
 	;;;clr arg1
@@ -570,9 +623,9 @@ MAIN:
 	rcall CLEAR_LCD
 
 	clr arg3
-	ldi temp, 0x0
+	ldi temp, high(nama)
 	mov arg2, temp
-	ldi temp, 0x80
+	ldi temp, low(nama)
 	mov arg1, temp
 	rcall PUT_STRING_DATA_MEM
 
