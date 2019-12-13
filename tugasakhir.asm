@@ -19,18 +19,19 @@
 .def DELAYREG2 = r9
 .def row = r10	; register pointing row
 .def col = r11	; register pointing column
-.def LEVELTIME = r5
 .def lokasicursor = r6
 .def temp = r16
 .def counter = r17
 .def pointer = r18;
-.def LEVELCOUNTER = r19
-.def LEVELTIMENOW = r20
+.def leveltimenow = r19
+.def levelcounter = r20
+.def saveopen = r21
 
 .equ layout_address = 0x60
-.equ nama = 0x80
-.equ nama_highscore = 0x90
-.equ highscore = 0x89
+.equ layout_flag = 0x80
+.equ nama = 0xA0
+.equ nama_highscore = 0xB0
+.equ highscore = 0xAA
 
 .org $00
 	rjmp INIT
@@ -215,7 +216,7 @@ ADD_LEVEL_TIME_NOW:
 	rcall RESET_TIMER1
 	
 	; add 1 to timer
-	inc LEVELTIMENOW
+	inc leveltimenow
 
 	pop temp
 	out SREG,temp
@@ -307,14 +308,22 @@ GET_RANDOM_NUMBER:
 
 ; not done
 SETUP_LAYOUT:
-	
+
 	rcall CLEAR_LCD
 
+	ldi temp, 1
+	mov arg3, temp
+	ldi temp, high(2*message_start)
+	mov arg2, temp
+	ldi temp, low(2*message_start)
+	mov arg1, temp
+	rcall PUT_STRING_PROG_MEM
+	
 	; set all to zero
 	ldi counter, 0
-	ldi temp, low(nama)	
+	ldi temp, low(layout_address)	
 	mov arg1, temp
-	ldi temp, high(nama)
+	ldi temp, high(layout_address)
 	mov arg2, temp
 	mov XL, arg1
 	mov XH, arg2
@@ -325,7 +334,6 @@ SETUP_LAYOUT:
 		inc counter
 		cpi counter, 32
 		brne SET_ZERO
-
 
 	ldi counter, 0
 											; USING RANDOM GENERATOR, SETUP LAYOUT
@@ -346,10 +354,10 @@ SETUP_LAYOUT:
 			andi temp, 0x1F
 			mov r0, temp
 
-			ldi temp, low(nama)	
+			ldi temp, low(layout_address)	
 			adc temp, r0
 			mov arg1, temp
-			ldi temp, high(nama)
+			ldi temp, high(layout_address)
 			mov arg2, temp
 
 			mov XL, arg1
@@ -469,6 +477,69 @@ CHANGE_CHARACTER:
 
 	rjmp WAIT_KEY
 
+OPEN_CARD_FINALLY_FINALLY:
+	ldi temp, low(layout_address)		
+	adc temp, pointer
+	mov arg1, temp
+	ldi temp, high(layout_address)
+	mov arg2, temp		; FLAG ARRAY
+
+	mov XL, arg1
+	mov XH, arg2
+	ld temp, X
+	mov arg1, temp
+	rcall WRITE_TEXT
+	rcall CHANGE_CURSOR_FINALLY
+	ret
+
+OPEN_CARD:
+
+	mov pointer, lokasicursor
+	mov temp, lokasicursor
+	andi pointer, 0x0F
+	andi temp, 0x40
+	tst temp
+	breq SKIP4
+	ori pointer, 0x10
+	SKIP4:
+
+	ldi temp, low(layout_flag)		
+	adc temp, pointer
+	mov arg1, temp
+	ldi temp, high(layout_flag)
+	mov arg2, temp		; FLAG ARRAY
+
+	mov XL, arg1
+	mov XH, arg2
+	ld temp, X
+	
+	tst temp
+	breq OPEN_CARD_FINALLY
+	clr arg1
+	ret
+
+
+	OPEN_CARD_FINALLY:
+		ldi temp, 1
+		ST X, temp
+		rcall OPEN_CARD_FINALLY_FINALLY
+		clr arg1
+		;;;inc counter
+		;;;cpi counter, 2
+		;;;breq TWO_OPEN_CARDS
+		;;;mov saveopen, pointer
+		;;;TWO_OPEN_CARDS:
+
+	DONE_OPEN_CARD:
+
+	; DAPAT DIBUKA ? BUKA, COUNTER KARTU YANG TERBUKA +1 : RETURN DARI FUNGSI
+	; YANG DIBUKA SUDAH 2 ? CEK KALO SAMA, COUNTER +1, BUKA SELAMANYA : TUTUP KEDUANYA
+
+CLOSE_CARD:
+
+	; GANTI SPRITE JADI BLACK BOX
+	; COUNTER KARTU YANG TERBUKA -1
+
 CHANGE_CURSOR_FINALLY:
 	mov temp, lokasicursor
 	cbi PORTA,1 			; CLR RS
@@ -510,16 +581,6 @@ MOVE_CURSOR_RIGHT:
 	rcall CHANGE_CURSOR_FINALLY		; Change the position of the cursor
 	rjmp WAIT_KEY
 
-OPEN_CARD:
-
-	; DAPAT DIBUKA ? BUKA, COUNTER KARTU YANG TERBUKA +1 : RETURN DARI FUNGSI
-	; YANG DIBUKA SUDAH 2 ? CEK KALO SAMA, COUNTER +1, BUKA SELAMANYA : TUTUP KEDUANYA
-
-CLOSE_CARD:
-
-	; GANTI SPRITE JADI BLACK BOX
-	; COUNTER KARTU YANG TERBUKA -1
-
 CHANGE_CURSOR:
 	cpi temp, 0x3E				; left
 	breq MOVE_CURSOR_LEFT
@@ -530,7 +591,7 @@ CHANGE_CURSOR:
 	cpi temp, 0x5D				; up
 	breq MOVE_CURSOR_UP_DOWN
 	cpi temp, 0x6D				; enter
-	breq OPEN_CARD
+	rcall OPEN_CARD
 
 	rjmp WAIT_KEY
 
@@ -581,44 +642,54 @@ WAIT_KEY:
 	brne GET_KEY         ; yes, no key is pressed
 	rjmp WAIT_KEY
 
+PLAY_GAME:
+	
+	ldi counter, 0
+	ldi temp, low(layout_flag)	
+	mov arg1, temp
+	ldi temp, high(layout_flag)
+	mov arg2, temp
+	mov XL, arg1
+	mov XH, arg2
+	clr temp
+
+	SET_ZERO2:
+		st X+, temp
+		inc counter
+		cpi counter, 32
+		brne SET_ZERO2
+
+	clr counter
+	clr arg1
+	clr leveltimenow		; PREPARE TIMER
+	rcall RESET_TIMER1	
+
+	rjmp WAIT_KEY
+
+
+	; COUNTER UNTUK KETAHUI JIKA PASANGAN TELAH DITEMUKAN
+	; SETIAP DETIK TAMBAH SATU KE LEVEL TIME NOW
+	; COUNTER == 16 ? UDAH SELESAI
+	; SELESAI ? SCORE = LEVEL TIME NOW
+
+	; JIKA HABIS WAKTU, GAME BERAKHIR
+	; SCORE < HIGHSCORE ? HIGHSCORE = SCORE
+	; TAMPILKAN NAMA DAN HIGHSCORE
+
+	; ADA BUTTON UNTUK MAIN ULANG
+	; DITEKAN ? DELAY, RJMP INIT
+
 MAIN:
 	
 	; INPUT NAME FUNC, GET_NAME
 	rcall GET_NAME
 	rcall CLEAR_LCD
 
-	; SAVE NAME IN FLASH MEMORY
-	; NAME HAS MAX OF 8 BYTES
-
-	ldi temp, 1
-	mov arg3, temp
-	ldi temp, high(2*message_start)
-	mov arg2, temp
-	ldi temp, low(2*message_start)
-	mov arg1, temp
-	rcall PUT_STRING_PROG_MEM
-
 	; DELAY, GET READY TO START GAME
 	; PREPARE LAYOUT
 	rcall SETUP_LAYOUT
-	; PREPARE TIMER
 
-	;;;clr arg1
-	;;;rjmp WAIT_KEY
-
-	; LAYOUT DISIMPAN DI SRAM
-	; COUNTER UNTUK KETAHUI JIKA PASANGAN TELAH DITEMUKAN
-	; COUNTER == 16 ? UDAH SELESAI
-	; LEVELTIMENOW == LEVELTIME ? KALAH
-	; TAMBAHKAN 1 KE GLOBAL LEVEL COUNTER
-	; START NEXT LEVEL, LEVELTIME -1
-
-	; JIKA HABIS WAKTU, GAME BERAKHIR
-	; SCORE > HIGHSCORE ? HIGHSCORE = SCORE
-	; TAMPILKAN NAMA DAN HIGHSCORE
-
-	; ADA BUTTON UNTUK MAIN ULANG
-	; DITEKAN ? DELAY, RJMP INIT
+	rcall PLAY_GAME
 
 	rcall CLEAR_LCD
 
