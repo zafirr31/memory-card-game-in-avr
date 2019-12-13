@@ -11,6 +11,7 @@
 ; Falih Mufazan
 
 .include "m8515def.inc"
+.def temp2 = r0
 .def arg1 = r1	; function arguments
 .def arg2 = r2  ; function arguments
 .def arg3 = r3	; function arguments
@@ -226,7 +227,7 @@ ADD_LEVEL_TIME_NOW:
 
 PRINT_CHAR_AT_CHAR_MAP:
 	ldi temp, low(2*character_map)		; GET FIRST CHARACTER IN CHAR MAP
-	adc temp, pointer
+	add temp, pointer
 	mov arg1, temp
 	ldi temp, high(2*character_map)
 	brcc SKIP		; IF OVERFLOW, ADD ONE TO HIGH
@@ -275,7 +276,7 @@ GET_NAME:
 
 	ldi pointer, 0
 	ldi temp, low(nama)	
-	adc temp, counter
+	add temp, counter
 	mov arg1, temp
 	ldi temp, high(nama)
 	mov arg2, temp		; ADD NULL BYTE
@@ -296,13 +297,15 @@ GET_RANDOM_NUMBER:
 	; USING SEED, GENERATE NEXT RANDOM NUMBER
 	; KOLABORASI DENGAN KELOMPOK SEAN ZELIQ
 
-	ldi temp, 71
+	ldi temp, 73
 	mul SEED, temp
 	mov SEED, r0
-	ldi temp, 67
-	adc SEED, temp
+	ldi temp, 31
+	add SEED, temp
+	in temp, TCNT0
 
-	mov temp, SEED		; PUT VALUE IN temp
+	eor SEED, temp		; PUT VALUE IN temp
+	mov temp, SEED
 
 	ret
 
@@ -355,7 +358,7 @@ SETUP_LAYOUT:
 			mov r0, temp
 
 			ldi temp, low(layout_address)	
-			adc temp, r0
+			add temp, r0
 			mov arg1, temp
 			ldi temp, high(layout_address)
 			mov arg2, temp
@@ -367,7 +370,7 @@ SETUP_LAYOUT:
 			brne STILL_HAS
 
 		ldi temp, low(2*character_map)		; GET CHARACTER IN CHAR MAP
-		adc temp, pointer
+		add temp, pointer
 		mov arg1, temp
 		ldi temp, high(2*character_map)
 		brcc SKIP3		; IF OVERFLOW, ADD ONE TO HIGH
@@ -435,7 +438,7 @@ INCREASE_LETTER:
 
 NEXT_CHAR:
 	ldi temp, low(2*character_map)		; GET FIRST CHARACTER IN CHAR MAP
-	adc temp, pointer
+	add temp, pointer
 	mov arg1, temp
 	ldi temp, high(2*character_map)
 	brcc SKIP2		; IF OVERFLOW, ADD ONE TO HIGH
@@ -450,7 +453,7 @@ NEXT_CHAR:
 
 
 	ldi temp, low(nama)		
-	adc temp, counter
+	add temp, counter
 	mov arg1, temp
 	ldi temp, high(nama)
 	mov arg2, temp		; ADDRESS OF NAMA
@@ -479,7 +482,7 @@ CHANGE_CHARACTER:
 
 OPEN_CARD_FINALLY_FINALLY:
 	ldi temp, low(layout_address)		
-	adc temp, pointer
+	add temp, pointer
 	mov arg1, temp
 	ldi temp, high(layout_address)
 	mov arg2, temp		; FLAG ARRAY
@@ -490,6 +493,40 @@ OPEN_CARD_FINALLY_FINALLY:
 	mov arg1, temp
 	rcall WRITE_TEXT
 	rcall CHANGE_CURSOR_FINALLY
+	ret
+
+CLOSE_CARD:
+	mov saveopen, arg1
+
+	ldi temp, low(layout_flag)		; GET FIRST CHAR TO COMPARE
+	add temp, saveopen
+	mov arg1, temp
+	ldi temp, high(layout_flag)
+	mov arg2, temp		; FLAG ARRAY
+
+	mov XL, arg1
+	mov XH, arg2
+	clr temp
+	st X, temp
+
+	mov arg1, saveopen
+
+	;; GET CURSOR FROM NUMBER
+	mov temp, saveopen
+	andi saveopen, 0x0F
+	andi temp, 0x10
+	tst temp
+	breq NO_SECOND_LINE
+	ori saveopen, 0x40
+	NO_SECOND_LINE:
+	ori saveopen, 0x80
+	mov temp, saveopen
+
+	mov lokasicursor, temp
+	rcall CHANGE_CURSOR_FINALLY
+	ldi temp, 63
+	mov arg1, temp
+	rcall WRITE_TEXT
 	ret
 
 OPEN_CARD:
@@ -504,7 +541,7 @@ OPEN_CARD:
 	SKIP4:
 
 	ldi temp, low(layout_flag)		
-	adc temp, pointer
+	add temp, pointer
 	mov arg1, temp
 	ldi temp, high(layout_flag)
 	mov arg2, temp		; FLAG ARRAY
@@ -523,22 +560,53 @@ OPEN_CARD:
 		ldi temp, 1
 		ST X, temp
 		rcall OPEN_CARD_FINALLY_FINALLY
-		clr arg1
-		;;;inc counter
-		;;;cpi counter, 2
-		;;;breq TWO_OPEN_CARDS
-		;;;mov saveopen, pointer
-		;;;TWO_OPEN_CARDS:
+		inc counter
+		cpi counter, 2
+		breq TWO_OPEN_CARDS
+		mov saveopen, pointer
+		rjmp DONE_OPEN_CARD
+
+		TWO_OPEN_CARDS:
+		clr counter
+
+		ldi temp, low(layout_address)		; GET FIRST CHAR TO COMPARE
+		add temp, pointer
+		mov arg1, temp
+		ldi temp, high(layout_address)
+		mov arg2, temp		; RAND ARRAY
+
+		mov XL, arg1
+		mov XH, arg2
+		ld temp, X
+		mov temp2, temp
+
+		ldi temp, low(layout_address)		; GET SECOND CHAR TO COMPARE
+		add temp, saveopen
+		mov arg1, temp
+		ldi temp, high(layout_address)
+		mov arg2, temp		; RAND ARRAY
+
+		mov XL, arg1
+		mov XH, arg2
+		ld temp, X
+
+		cp temp, temp2
+		breq OPEN_CARD_FOREVER
+
+		CLOSE_BOTH_CARDS:
+		mov arg1, saveopen
+		rcall CLOSE_CARD
+		mov arg1, pointer
+		rcall CLOSE_CARD
+		rcall CHANGE_CURSOR_FINALLY
+		rjmp DONE_OPEN_CARD
+
+		OPEN_CARD_FOREVER:
+		inc levelcounter
 
 	DONE_OPEN_CARD:
-
-	; DAPAT DIBUKA ? BUKA, COUNTER KARTU YANG TERBUKA +1 : RETURN DARI FUNGSI
-	; YANG DIBUKA SUDAH 2 ? CEK KALO SAMA, COUNTER +1, BUKA SELAMANYA : TUTUP KEDUANYA
-
-CLOSE_CARD:
-
-	; GANTI SPRITE JADI BLACK BOX
-	; COUNTER KARTU YANG TERBUKA -1
+	clr arg1
+	ret
 
 CHANGE_CURSOR_FINALLY:
 	mov temp, lokasicursor
@@ -591,7 +659,7 @@ CHANGE_CURSOR:
 	cpi temp, 0x5D				; up
 	breq MOVE_CURSOR_UP_DOWN
 	cpi temp, 0x6D				; enter
-	rcall OPEN_CARD
+	rjmp OPEN_CARD
 
 	rjmp WAIT_KEY
 
@@ -659,18 +727,18 @@ PLAY_GAME:
 		cpi counter, 32
 		brne SET_ZERO2
 
+	clr levelcounter
 	clr counter
 	clr arg1
 	clr leveltimenow		; PREPARE TIMER
 	rcall RESET_TIMER1	
 
-	rjmp WAIT_KEY
+	NOT_DONE_YET_PLAYING:
+		rcall WAIT_KEY
+		cpi levelcounter, 16
+		brne NOT_DONE_YET_PLAYING
 
-
-	; COUNTER UNTUK KETAHUI JIKA PASANGAN TELAH DITEMUKAN
-	; SETIAP DETIK TAMBAH SATU KE LEVEL TIME NOW
-	; COUNTER == 16 ? UDAH SELESAI
-	; SELESAI ? SCORE = LEVEL TIME NOW
+	ret
 
 	; JIKA HABIS WAKTU, GAME BERAKHIR
 	; SCORE < HIGHSCORE ? HIGHSCORE = SCORE
