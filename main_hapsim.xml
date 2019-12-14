@@ -3,10 +3,10 @@
    <General>
       <Build>2005</Build>
       <Position>
-         <top>76</top>
-         <bottom>508</bottom>
-         <left>759</left>
-         <right>1216</right>
+         <top>156</top>
+         <bottom>516</bottom>
+         <left>653</left>
+         <right>1276</right>
       </Position>
       <StayOnTop>1</StayOnTop>
       <Target>ATmega8515</Target>
@@ -15,11 +15,11 @@
       <LCD>
          <Name>LCD1</Name>
          <Position>
-            <top>0</top>
-            <left>0</left>
+            <top>4294967294</top>
+            <left>4294967294</left>
          </Position>
          <DisplayConfig>
-            <columns>16</columns>
+            <columns>32</columns>
             <rows>2</rows>
             <bkColor>0xc1fa9d</bkColor>
             <size>2</size>
@@ -45,11 +45,52 @@
             </RS_Pin>
          </PortMapping>
       </LCD>
+      <Buttons>
+         <Name>Buttons1</Name>
+         <Position>
+            <top>75</top>
+            <left>55</left>
+         </Position>
+         <Config index="0">
+            <Name>Reset</Name>
+            <PortPin>
+               <Port>PORTD</Port>
+               <Bit>2</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+         <Config index="1">
+            <Name>Button1</Name>
+            <PortPin>
+               <Port>PORTB</Port>
+               <Bit>5</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+         <Config index="2">
+            <Name>Button2</Name>
+            <PortPin>
+               <Port>PORTA</Port>
+               <Bit>6</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+         <Config index="3">
+            <Name>Button3</Name>
+            <PortPin>
+               <Port>PORTA</Port>
+               <Bit>7</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+         <TrinaryGroupEnable index="0">0</TrinaryGroupEnable>
+         <TrinaryGroupEnable index="1">0</TrinaryGroupEnable>
+      </Buttons>
       <Keypad>
          <Name>Keypad1</Name>
          <Position>
             <top>7</top>
-            <left>269</left>
+            <left>294</left>
          </Position>
          <PortMapping>
             <Strobe index="0">

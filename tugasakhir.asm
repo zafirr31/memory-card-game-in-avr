@@ -46,6 +46,8 @@
 	rjmp ADD_LEVEL_TIME_NOW
 
 FULL_RESET:
+	clr leveltimenow
+	clr levelcounter
 	ldi temp, low(nama)	
 	mov arg1, temp
 	ldi temp, high(nama)
