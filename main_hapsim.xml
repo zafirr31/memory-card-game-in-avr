@@ -3,10 +3,10 @@
    <General>
       <Build>2005</Build>
       <Position>
-         <top>119</top>
-         <bottom>550</bottom>
-         <left>559</left>
-         <right>1187</right>
+         <top>76</top>
+         <bottom>508</bottom>
+         <left>759</left>
+         <right>1216</right>
       </Position>
       <StayOnTop>1</StayOnTop>
       <Target>ATmega8515</Target>
@@ -15,8 +15,8 @@
       <LCD>
          <Name>LCD1</Name>
          <Position>
-            <top>1</top>
-            <left>35</left>
+            <top>0</top>
+            <left>0</left>
          </Position>
          <DisplayConfig>
             <columns>16</columns>
@@ -45,112 +45,5 @@
             </RS_Pin>
          </PortMapping>
       </LCD>
-      <Keypad>
-         <Name>Keypad1</Name>
-         <Position>
-            <top>7</top>
-            <left>269</left>
-         </Position>
-         <PortMapping>
-            <Strobe index="0">
-               <Port>PORTC</Port>
-               <Bit>7</Bit>
-            </Strobe>
-            <Strobe index="1">
-               <Port>PORTC</Port>
-               <Bit>6</Bit>
-            </Strobe>
-            <Strobe index="2">
-               <Port>PORTC</Port>
-               <Bit>5</Bit>
-            </Strobe>
-            <Strobe index="3">
-               <Port>PORTC</Port>
-               <Bit>4</Bit>
-            </Strobe>
-            <Input index="0">
-               <Port>PORTC</Port>
-               <Bit>3</Bit>
-            </Input>
-            <Input index="1">
-               <Port>PORTC</Port>
-               <Bit>2</Bit>
-            </Input>
-            <Input index="2">
-               <Port>PORTC</Port>
-               <Bit>1</Bit>
-            </Input>
-            <Input index="3">
-               <Port>PORTC</Port>
-               <Bit>0</Bit>
-            </Input>
-         </PortMapping>
-         <Buttons>
-            <Button index="0">
-               <Caption></Caption>
-               <PCKey>2830206008</PCKey>
-            </Button>
-            <Button index="1">
-               <Caption></Caption>
-               <PCKey>0</PCKey>
-            </Button>
-            <Button index="2">
-               <Caption></Caption>
-               <PCKey>0</PCKey>
-            </Button>
-            <Button index="3">
-               <Caption></Caption>
-               <PCKey>0</PCKey>
-            </Button>
-            <Button index="4">
-               <Caption></Caption>
-               <PCKey>4294967295</PCKey>
-            </Button>
-            <Button index="5">
-               <Caption></Caption>
-               <PCKey>0</PCKey>
-            </Button>
-            <Button index="6">
-               <Caption></Caption>
-               <PCKey>4294967295</PCKey>
-            </Button>
-            <Button index="7">
-               <Caption>Left</Caption>
-               <PCKey>0</PCKey>
-            </Button>
-            <Button index="8">
-               <Caption></Caption>
-               <PCKey>0</PCKey>
-            </Button>
-            <Button index="9">
-               <Caption></Caption>
-               <PCKey>0</PCKey>
-            </Button>
-            <Button index="10">
-               <Caption>Up</Caption>
-               <PCKey>1702879536</PCKey>
-            </Button>
-            <Button index="11">
-               <Caption>Down</Caption>
-               <PCKey>0</PCKey>
-            </Button>
-            <Button index="12">
-               <Caption></Caption>
-               <PCKey>37862451</PCKey>
-            </Button>
-            <Button index="13">
-               <Caption></Caption>
-               <PCKey>1702880176</PCKey>
-            </Button>
-            <Button index="14">
-               <Caption>Enter</Caption>
-               <PCKey>2824311080</PCKey>
-            </Button>
-            <Button index="15">
-               <Caption>Right</Caption>
-               <PCKey>2823800344</PCKey>
-            </Button>
-         </Buttons>
-      </Keypad>
    </Views>
 </HAPSIM>
