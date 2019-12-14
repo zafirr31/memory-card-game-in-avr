@@ -2,7 +2,7 @@
 
 ; Pembuat:
 ; Zafir Rasyidi Taufik
-; Ariell Zaky Prabaswara Ariza
+; Ariell Zaki Prabaswara Ariza
 ; Aljihad Ijlal Nadhif Suyudi
 
 ; Kolaborator (Random Algorithm):
@@ -983,7 +983,7 @@ PLAY_GAME:
 	out TCCR1B, temp
 	dec leveltimenow
 
-	ldi temp, low(highscore)	
+	ldi temp, low(highscore)
 	mov arg1, temp
 	ldi temp, high(highscore)
 	mov arg2, temp
@@ -995,6 +995,11 @@ PLAY_GAME:
 	brsh NO_HIGHSCORE
 	rcall SET_HIGHSCORE
 	NO_HIGHSCORE:
+		ret
+
+DEACTIVATE_TIMER:
+	ldi temp, 0<<OCIE1A			; Enable timer/counter1B compare int
+	out TIMSK, temp
 	ret
 
 MAIN:
@@ -1008,6 +1013,9 @@ MAIN:
 	rcall SETUP_LAYOUT
 
 	rcall PLAY_GAME
+	
+	; DEACTIVATE TIMER WHEN THE GAME IS OVER
+	rcall DEACTIVATE_TIMER
 
 	forever:
 		rcall CLEAR_LCD
@@ -1017,6 +1025,8 @@ MAIN:
 		rcall PRINT_HIGH_SCORE
 		rcall LONG_LONG_DELAY
 		rjmp forever
+
+
 
 message_start:
 .db "SIAP SIAP...", 0, 0
