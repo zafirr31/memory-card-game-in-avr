@@ -47,8 +47,8 @@
 
 FULL_RESET:
 	ldi leveltimenow, 0
-	;ldi levelcounter, 0
-	;ldi counter, 0
+	ldi levelcounter, 0
+	ldi counter, 0
 	ldi temp, low(nama)	
 	mov arg1, temp
 	ldi temp, high(nama)
