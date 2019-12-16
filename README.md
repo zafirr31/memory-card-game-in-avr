@@ -20,3 +20,5 @@ Pada saat game ini dijalankan, akan muncul LCD yang berperan sebagai layar, keyp
 Setelah itu, ketika ingin berpindah satu digit ke kanan, kita bisa menekan Enter. Setelah kita memasukkan nama, selanjutnya layar akan menampilkan hasil random berupa kartu - kartu yang belum terbuka. Kita dapat menggunakan keypad untuk menggerakkan cursor. Ketika kita ingin membuka kartu di suatu posisi, maka kita dapat menekan Enter setelah cursornya berada pada kartu tersebut dan led kuning akan menyala. Jika kita membuka 2 kartu yang berbeda maka LED merah akan menyala disertai dengan kedua kartu tersebut akan tertutup kembali dan sebaliknya jika kita membuka 2 kartu yang sama maka LED hijau akan menyala disertai kedua kartu tersebut akan terus terbuka hingga game berakhir.
 
 Game ini akan berakhir jika kita berhasil membuka semua kartu. Setelah game ini berakhir, layar akan menampilkan score kita dan setelah itu menampilkan pula highscore sementara.
+
+Link Video Dokumentasi: https://youtu.be/O0qLDiZq7Zs
