@@ -3,10 +3,10 @@
    <General>
       <Build>2005</Build>
       <Position>
-         <top>156</top>
-         <bottom>516</bottom>
+         <top>155</top>
+         <bottom>548</bottom>
          <left>653</left>
-         <right>1276</right>
+         <right>1401</right>
       </Position>
       <StayOnTop>1</StayOnTop>
       <Target>ATmega8515</Target>
@@ -86,11 +86,90 @@
          <TrinaryGroupEnable index="0">0</TrinaryGroupEnable>
          <TrinaryGroupEnable index="1">0</TrinaryGroupEnable>
       </Buttons>
+      <LEDs>
+         <Name>LEDs1</Name>
+         <Position>
+            <top>69</top>
+            <left>238</left>
+         </Position>
+         <Config index="0">
+            <Color>Green</Color>
+            <Name>---</Name>
+            <PortPin>
+               <Port>PORTE</Port>
+               <Bit>0</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+         <Config index="1">
+            <Color>Green</Color>
+            <Name>Correct</Name>
+            <PortPin>
+               <Port>PORTE</Port>
+               <Bit>1</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+         <Config index="2">
+            <Color>Green</Color>
+            <Name>---</Name>
+            <PortPin>
+               <Port>PORTE</Port>
+               <Bit>2</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+         <Config index="3">
+            <Color>Yellow</Color>
+            <Name></Name>
+            <PortPin>
+               <Port>PORTE</Port>
+               <Bit>3</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+         <Config index="4">
+            <Color>Yellow</Color>
+            <Name></Name>
+            <PortPin>
+               <Port>PORTE</Port>
+               <Bit>4</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+         <Config index="5">
+            <Color>Red</Color>
+            <Name>---</Name>
+            <PortPin>
+               <Port>PORTE</Port>
+               <Bit>5</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+         <Config index="6">
+            <Color>Red</Color>
+            <Name>Wrong</Name>
+            <PortPin>
+               <Port>PORTE</Port>
+               <Bit>6</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+         <Config index="7">
+            <Color>Red</Color>
+            <Name>---</Name>
+            <PortPin>
+               <Port>PORTE</Port>
+               <Bit>7</Bit>
+            </PortPin>
+            <Invert>0</Invert>
+         </Config>
+      </LEDs>
       <Keypad>
          <Name>Keypad1</Name>
          <Position>
-            <top>7</top>
-            <left>294</left>
+            <top>1</top>
+            <left>397</left>
          </Position>
          <PortMapping>
             <Strobe index="0">
